@@ -5,13 +5,13 @@ import {
 	SelectItem,
 	SelectTrigger,
 	SelectValue,
-	SelectLabel,
 	SelectGroup,
 } from "@/components/ui/select";
 
 import { Check, Copy } from "lucide-react";
 // import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import TimeFormatPicker from "./components/ui/TimeFormatPicker";
 
 // Types definition
 interface PromptSettings {
@@ -29,6 +29,7 @@ interface PromptSettings {
 	separator: string;
 	newLine: boolean;
 	bgColor: string;
+	timeFormat: string[];
 }
 
 const PromptGenerator: React.FC = () => {
@@ -47,6 +48,7 @@ const PromptGenerator: React.FC = () => {
 		separator: "➜",
 		newLine: false,
 		bgColor: "#282727",
+		timeFormat: [],
 	});
 
 	const [copied, setCopied] = useState<boolean>(false);
@@ -71,11 +73,50 @@ const PromptGenerator: React.FC = () => {
 			: "255;255;255";
 	};
 
+	const generateTimeFormat = (): string => {
+		let timeFormat = "";
+		if (settings.timeFormat.includes("hh")) {
+			timeFormat += "%H";
+		}
+		if (settings.timeFormat.includes("mm")) {
+			timeFormat += ":%M";
+		}
+		if (settings.timeFormat.includes("ss")) {
+			timeFormat += ":%S";
+		}
+		if (settings.timeFormat.includes("yyyy")) {
+			timeFormat = "%Y-" + timeFormat;
+		}
+		if (settings.timeFormat.includes("mm")) {
+			timeFormat = timeFormat.replace("%Y-", "");
+			timeFormat = "%m-" + timeFormat;
+		}
+		return timeFormat;
+	};
+
+	const formatTime = (format: string[]): string => {
+		const now = new Date();
+
+		const options: { [key: string]: string | number } = {
+			hh: now.getHours().toString().padStart(2, "0"), // Hours (00-23)
+			mm: now.getMinutes().toString().padStart(2, "0"), // Minutes (00-59)
+			ss: now.getSeconds().toString().padStart(2, "0"), // Seconds (00-59)
+			dd: now.getDate().toString().padStart(2, "0"), // Day (01-31)
+			MM: (now.getMonth() + 1).toString().padStart(2, "0"), // Month (01-12)
+			yyyy: now.getFullYear().toString(), // Year (YYYY)
+		};
+
+		// Join the format components dynamically
+		return format.map((part) => options[part] || part).join(":");
+	};
+
 	const generatePrompt = (): string => {
 		let prompt = 'PS1="';
 
-		if (settings.showTime) {
-			prompt += `%{\\e[38;2;${hexToRgb(settings.timeColor)}m%}[\\T]%{\\e[0m%}`;
+		if (settings.showTime && settings.timeFormat.length > 0) {
+			prompt += `%{\\e[38;2;${hexToRgb(
+				settings.timeColor
+			)}m%}[\\$(date "+${generateTimeFormat()}")]%{\\e[0m%}`;
 		}
 
 		if (settings.showUsername) {
@@ -111,6 +152,8 @@ const PromptGenerator: React.FC = () => {
 		setCopied(true);
 		setTimeout(() => setCopied(false), 2000);
 	};
+
+	const [timeFormat, setTimeFormat] = useState<string[]>(["hh", "mm", "ss"]);
 
 	return (
 		<div className="p-4 max-w-4xl mx-auto">
@@ -233,16 +276,28 @@ const PromptGenerator: React.FC = () => {
 										</div>
 									)}
 									{settings.showTime && (
-										<div className="flex items-center gap-2">
-											<label className="min-w-24">Time Color</label>
-											<input
-												type="color"
-												value={settings.timeColor}
-												onChange={(e) =>
-													updateSetting("timeColor", e.target.value)
-												}
-												className="w-20 h-8 p-1"
-											/>
+										<div>
+											<div className="mt-6">
+												<div className="flex items-center justify-between">
+													<label htmlFor="time">Time Color</label>
+													<input
+														type="color"
+														value={settings.timeColor}
+														onChange={(e) =>
+															updateSetting("timeColor", e.target.value)
+														}
+														className="w-20 h-8 p-1"
+													/>
+												</div>
+											</div>
+											<div className="mt-6">
+												<TimeFormatPicker
+													selectedTimeFormat={timeFormat}
+													onTimeFormatChange={(newFormat) =>
+														setTimeFormat(newFormat)
+													}
+												/>
+											</div>
 										</div>
 									)}
 								</div>
@@ -278,7 +333,9 @@ const PromptGenerator: React.FC = () => {
 						<div className="flex items-center justify-between w-full">
 							<div className="flex items-center space-x-2">
 								{settings.showTime && (
-									<span style={{ color: settings.timeColor }}>[12:34]</span>
+									<span style={{ color: settings.timeColor }}>
+										[{formatTime(settings.timeFormat)}]
+									</span>
 								)}
 								{settings.showUsername && (
 									<span style={{ color: settings.usernameColor }}>user</span>
