@@ -11,7 +11,7 @@ const TimeFormatPicker: React.FC<TimeFormatPickerProps> = ({
 }) => {
 	const [selectedFormat, setSelectedFormat] =
 		useState<string[]>(selectedTimeFormat);
-
+	console.log({ selectedFormat, t: onTimeFormatChange });
 	useEffect(() => {
 		// Update parent whenever time format changes
 		onTimeFormatChange(selectedFormat);
@@ -31,6 +31,32 @@ const TimeFormatPicker: React.FC<TimeFormatPickerProps> = ({
 		<div className="space-y-4">
 			<h3 className="text-lg font-semibold">Select Time Format</h3>
 			<div className="space-y-2">
+				<label className="flex items-center">
+					<input
+						type="checkbox"
+						checked={selectedFormat.includes("yyyy")}
+						onChange={() => handleCheckboxChange("yyyy")}
+					/>
+					<span className="ml-2">Year (yyyy)</span>
+				</label>
+
+				<label className="flex items-center">
+					<input
+						type="checkbox"
+						checked={selectedFormat.includes("MM")}
+						onChange={() => handleCheckboxChange("MM")}
+					/>
+					<span className="ml-2">Month (MM)</span>
+				</label>
+
+				<label className="flex items-center">
+					<input
+						type="checkbox"
+						checked={selectedFormat.includes("dd")}
+						onChange={() => handleCheckboxChange("dd")}
+					/>
+					<span className="ml-2">Day (dd)</span>
+				</label>
 				<label className="flex items-center">
 					<input
 						type="checkbox"
@@ -56,33 +82,6 @@ const TimeFormatPicker: React.FC<TimeFormatPickerProps> = ({
 						onChange={() => handleCheckboxChange("ss")}
 					/>
 					<span className="ml-2">Second (ss)</span>
-				</label>
-
-				<label className="flex items-center">
-					<input
-						type="checkbox"
-						checked={selectedFormat.includes("dd")}
-						onChange={() => handleCheckboxChange("dd")}
-					/>
-					<span className="ml-2">Day (dd)</span>
-				</label>
-
-				<label className="flex items-center">
-					<input
-						type="checkbox"
-						checked={selectedFormat.includes("MM")}
-						onChange={() => handleCheckboxChange("MM")}
-					/>
-					<span className="ml-2">Month (MM)</span>
-				</label>
-
-				<label className="flex items-center">
-					<input
-						type="checkbox"
-						checked={selectedFormat.includes("yyyy")}
-						onChange={() => handleCheckboxChange("yyyy")}
-					/>
-					<span className="ml-2">Year (yyyy)</span>
 				</label>
 			</div>
 		</div>
