@@ -55,7 +55,7 @@ const PromptGenerator: React.FC = () => {
 
 	const updateSetting = (
 		key: keyof PromptSettings,
-		value: string | boolean
+		value: string | boolean | string[]
 	): void => {
 		setSettings((prev) => ({
 			...prev,
@@ -74,6 +74,7 @@ const PromptGenerator: React.FC = () => {
 	};
 
 	const generateTimeFormat = (): string => {
+		console.log("I am in generateTime format");
 		let timeFormat = "";
 		if (settings.timeFormat.includes("hh")) {
 			timeFormat += "%H";
@@ -96,7 +97,6 @@ const PromptGenerator: React.FC = () => {
 
 	const formatTime = (format: string[]): string => {
 		const now = new Date();
-
 		const options: { [key: string]: string | number } = {
 			hh: now.getHours().toString().padStart(2, "0"), // Hours (00-23)
 			mm: now.getMinutes().toString().padStart(2, "0"), // Minutes (00-59)
@@ -111,12 +111,12 @@ const PromptGenerator: React.FC = () => {
 	};
 
 	const generatePrompt = (): string => {
-		let prompt = 'PS1="';
+		let prompt = 'PROMPT="';
 
 		if (settings.showTime && settings.timeFormat.length > 0) {
 			prompt += `%{\\e[38;2;${hexToRgb(
 				settings.timeColor
-			)}m%}[\\$(date "+${generateTimeFormat()}")]%{\\e[0m%}`;
+			)}m%}\\$(date "+${generateTimeFormat().toString()}")%{\\e[0m%}`;
 		}
 
 		if (settings.showUsername) {
@@ -145,7 +145,6 @@ const PromptGenerator: React.FC = () => {
 
 		return prompt;
 	};
-
 	const copyToClipboard = async (): Promise<void> => {
 		const prompt = generatePrompt();
 		await navigator.clipboard.writeText(prompt);
@@ -154,7 +153,7 @@ const PromptGenerator: React.FC = () => {
 	};
 
 	const [timeFormat, setTimeFormat] = useState<string[]>(["hh", "mm", "ss"]);
-
+	console.log({ timeFormat });
 	return (
 		<div className="p-4 max-w-4xl mx-auto">
 			<div className="mb-6">
@@ -292,10 +291,11 @@ const PromptGenerator: React.FC = () => {
 											</div>
 											<div className="mt-6">
 												<TimeFormatPicker
-													selectedTimeFormat={timeFormat}
-													onTimeFormatChange={(newFormat) =>
-														setTimeFormat(newFormat)
-													}
+													selectedTimeFormat={settings.timeFormat}
+													onTimeFormatChange={(newFormat) => {
+														setTimeFormat(newFormat); // Only update the time format in the state
+														updateSetting("timeFormat", newFormat); // Update settings.timeFormat directly
+													}}
 												/>
 											</div>
 										</div>
